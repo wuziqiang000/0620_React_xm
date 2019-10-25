@@ -1,22 +1,27 @@
-/* 
-应用根组件
+/*
+应用根目录
 */
+
 import React, {Component} from 'react'
-import {Router, Route, Switch} from 'react-router-dom'
-import Login from "./containers/login"
-import Admin from "./containers/admin"
-import history from './history'
+import {Button,message} from 'antd'
+import {BrowserRouter,Switch,Route} from 'react-router-dom'
+import Login from './pages/login/login'
+import Admin from './pages/admin/admin'
 
-export default class App extends Component {
+export default class App extends Component{
 
-  render () {
-    return (
-      <Router history={history}>
-        <Switch> {/* /login/xxx   默认使用不完全匹配 | 使用第一个匹配的路由 */}
-          <Route path="/login" component={Login} exact/>
-          <Route path="/" component={Admin}/>
+  handleClick = () => {
+    message.success('成功啦。。。')
+  }
+
+  render(){
+    return(
+      <BrowserRouter>
+        <Switch>
+          <Route path='/login' component={Login}/>
+          <Route path='/' component={Admin}/>
         </Switch>
-      </Router>
+      </BrowserRouter>
     )
   }
 }
