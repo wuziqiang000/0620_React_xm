@@ -1,22 +1,11 @@
-/* 
-reduer函数: 根据原有的state和指定的action, 产生并返回一个新的state
-*/
-import {
-  DECREEMENT,
-  INCREEMENT
-} from './action-types'
+/**
+ * 接收原来的状态，返回一个新的state值
+ * 接收action对象，必须有一个type属性
+ */
 
-/* 
-用于管理count数据的reducer函数
-*/
-export default function count (state = 1, action) {
-  console.log('cout()', state, action)
-  switch (action.type) { // 'INCREEMENT' 'DECREEMENT'
-    case INCREEMENT:
-      return state + action.data   
-    case DECREEMENT:
-      return state - action.data   
-    default:
-      return state // 返回原来的值
-  }
-}
+import { DECREEMENT,INCREEMENT } from './CONST'
+
+/**
+ * 判断：当type=DECREEMENT时，减
+ *      当type=INCREEMENT时，加
+ */
