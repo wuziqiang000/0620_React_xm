@@ -1,27 +1,22 @@
-/*
-应用根目录
+/* 
+应用根组件
 */
-
 import React, {Component} from 'react'
-import {Button,message} from 'antd'
-import {BrowserRouter,Switch,Route} from 'react-router-dom'
-import Login from './pages/login/login'
-import Admin from './pages/admin/admin'
+import {Router, Route, Switch} from 'react-router-dom'
+import Login from "./containers/login"
+import Admin from "./containers/admin"
+import history from "./history";
 
-export default class App extends Component{
+export default class App extends Component {
 
-  handleClick = () => {
-    message.success('成功啦。。。')
-  }
-
-  render(){
-    return(
-      <BrowserRouter>
+  render () {
+    return (
+      <Router history={ history }>
         <Switch>
-          <Route path='/login' component={Login}/>
-          <Route path='/' component={Admin}/>
+          <Route path="/login" component={Login} exact/>
+          <Route path="/" component={Admin}/>
         </Switch>
-      </BrowserRouter>
+      </Router>
     )
   }
 }
