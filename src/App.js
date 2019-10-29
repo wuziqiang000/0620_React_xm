@@ -1,78 +1,34 @@
-import React, { Component } from 'react'
-import PropTypes from "prop-types";
+/* 
+应用根组件
+*/
+import React, {Component} from 'react'
+// import {Button, message} from 'antd'
+import {Router, Route, Switch, Redirect} from 'react-router-dom'
+
+import routes from './config/routes'
+import history from './history'
+import Login from "./containers/login"
+import Admin from './containers/admin'
 
 export default class App extends Component {
-  
-  static propTypes = {
-    store: PropTypes.object.isRequired
-  }
 
-  // 创建一个容器，用于保存加或减的基数（即下拉框显示的数值）
-  numberRef = React.createRef()
-
-  // 绑定点击事件
-  // 同步增加
-  increment = () => {
-    // 获取到相加的基数
-    // 得到的是字符串，要将其转换成数值型
-    const number = this.numberRef.current.value * 1
-    // 更新状态
-    this.setState({
-      count:this.state.count + number
-    })
-  }
-
-  // 同步减少
-  decrement = () => {
-    // 获取到相减的基数
-    // 得到的是字符串，要将其转换成数值型
-    const number = this.numberRef.current.value * 1
-    // 更新状态
-    this.setState({
-      count:this.state.count - number
-    })
-  }
-
-  // 当点击次数为奇数时，增加
-  incrementIfOdd = () =>{
-    const number = this.numberRef.current.value * 1
-    // 判断是否为基数
-    if (this.state.count %2 === 1) {
-      // 更新状态
-      this.setState({
-        count:this.state.count + number
-      })
-    }
-  }
-
-  // 定时器到达时间后，增加
-  incrementAsync = () => {
-    const number = this.numberRef.current.value * 1
-    setTimeout(() => {
-      // 更新状态
-      this.setState({
-        count:this.state.count + number
-      })
-    }, 2000);
-  }
-
-  render() {
-    const count = this.state.count
+  render () {
     return (
-      <div>
-        <h2>你点击了 {count} 次</h2>
-        <div>
-          <select ref={this.numberRef}>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-          <button onClick={this.increment}>+</button>
-          <button onClick={this.decrement}>-</button>
-          <button onClick={this.incrementIfOdd}>increment if odd</button>
-          <button onClick={this.incrementAsync}>increment async</button>
-        </div>
-      </div>
+      <Router history={history}>
+        <Switch> {/* /login/xxx   默认使用不完全匹配 | 使用第一个匹配的路由 */}
+          <Route path="/login" component={Login} exact/>
+          <Admin>
+            <Switch>
+              {
+                routes.map(item => (
+                  <Route {...item} key={item.path}/>
+                ))
+              }
+              <Redirect to="/home" />
+            </Switch>
+          </Admin>
+        </Switch>
+      </Router>
     )
   }
 }
