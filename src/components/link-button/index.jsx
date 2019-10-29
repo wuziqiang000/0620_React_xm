@@ -1,12 +1,12 @@
-// 退出登录按钮路由
-
-// 第三方文件
 import React from 'react'
-
-// 自定义文件
-// 退出按钮样式
 import './index.less'
-
+/* 
+组件标签体的内容以children自动传递给组件内部
+  字符串
+  标签对象
+  标签对象的数组
+与原生标签对应的标签接收到的children属性会转换成原生标签的标签体内容
+*/
 function LinkButton (props) {
   /* 将接收到所有属性都传给button */
   return <button className="link-button" {...props}/>

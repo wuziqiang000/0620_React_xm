@@ -1,52 +1,46 @@
-/**
- * 封装local存储数据
- *      localStorage
- */
-// 使用第三方包
+/* 
+local数据存储的工具函数封装
+*/
 import store from 'store'
 
-
-//  保存数据:保存指定key及对应的value值
-function set(key,value) {
-  // 原生写法
-  //localStorage.setItem(key,value instanceof Object ? JSON.stringify(value) : value)
-  // 简单方法
-  store.set(key,value)
+/* 
+保存指定key和value的数据
+*/
+function set(key, value) {
+  // localStorage.setItem(key, value instanceof Object ? JSON.stringify(value) : value)
+  store.set(key, value)
 }
-// 获取数据:获取指定key对应的value值，没传key则返回默认值
-function get(key,defaultValue) {
-  // 原生写法
-  // // 得到key对应的value
+
+/* 
+获取指定key的对应的值, 如果没有, 返回指定的默认值
+*/
+function get(key, defaultValue) {
+  if (defaultValue===undefined) {
+    throw new Error(' get() 必须指定默认值')
+  }
   // const value = localStorage.getItem(key)
-  // // 判断：如果返回的数据为对象，进行转换;否则直接返回
   // if (defaultValue instanceof Object) {
   //   return JSON.parse(value) || defaultValue
-  // }
+  // } 
   // return value || defaultValue
-
-  // 简单写法
-  // 当不传默认值时
-  if (defaultValue === undefined) {
-    throw new Error('必须传默认值')
-  }
-  // 注意return
-  return store.get(key,defaultValue)
+  return store.get(key, defaultValue)
 }
 
-// 删除数据：删除指定key对应的信息
+/* 
+删除指定key的数据, 如果不传删除所有
+*/
 function remove(key) {
-  // 原生写法
   // localStorage.removeItem(key)
-  // 简单写法
-  // 如果不传key，则代表删除所有
   if (key) {
     store.remove(key)
-  }else{
+  } else {
     store.clearAll()
   }
+  
 }
 
-// 暴露
+
+
 export default {
   set,
   get,

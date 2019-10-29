@@ -1,119 +1,116 @@
-/**
- * 对axios进行二次封装（发送ajax请求）
-    1). 将post请求的data对象数据转换为urlencode格式的字符串数据
-    2). 如果请求成功, 判断操作是否成功
-        如果成功返回返回的data数据, 外部具体请求得到需要的数据
-        如果失败返回携带msg的错误, 外部具体请求处理错误
-    3).统一处理请求异常, 外部调用者不用再处理请求异常
-    4). 请求过程中显示请求进度的效果
-    5).验证token值
-        在请求拦截器中：发送登录请求时，保存token值
-        在响应拦截器中：进入失败的回调
-              发送请求没有token值
-              发送请求token值过期，自动跳转登录页面
-                  清空用户信息
-                  当发送多个请求时，跳转到登录页面，只显示一个信息即可
- */
-// 第三方文件
-//  axios发送请求
- import axios from "axios";
-//  将json参数转换为urlenclde参数
- import qs from 'qs'
- //  用于显示错误信息
- import {message} from 'antd'
-//  进度条
- import NProgress from 'nprogress'
-//  进度条样式
-  import 'nprogress/nprogress.css'
+/* 
+封装一个能发ajax请求的函数/对象
+进行axios的二次封装(ajax请求)
+
+  1). 将post请求的data对象数据转换为urlencode格式的字符串数据
+  2). 如果请求成功, 判断操作是否成功
+      如果成功返回返回的data数据, 外部具体请求得到需要的数据
+      如果失败返回携带msg的错误, 外部具体请求处理错误
+  3).统一处理请求异常, 外部调用者不用再处理请求异常
+  4). 请求过程中显示请求进度的效果
+  5). token验证处理
+      请求拦截器: 如果有token , 添加到请求头中: Authorization
+      响应拦截器失败的回调: 
+        如果status401, 清除用户数据, 自动跳转到跳转
+        如果当前已经在登陆界面, 不需要做处理
+*/
+import axios from 'axios'
+import qs from 'qs'
+import {message} from 'antd'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+
+import store from '../redux/store'
+import {removeUserToken} from '../redux/action-creators/user'
+import history from '../history'
 
 
-//自定义文件 
- import store from "../redux/store";
-//  清空用户信息
- import {removeUserToken} from '../redux/action-creators/user'
- import history from '../history'
-
-
-
-/**
- * 创建instance：用于发送ajax请求
- */
-const instance = axios.create({// 配置对象
-  timeout:10000 //允许超时时间
-
+// 创建一个instance
+const instance = axios.create({
+  timeout: 10000 // 超时时间为10s
 })
 
 // 添加请求拦截器
-/**
- * 1). 将post请求的data对象数据转换为urlencode格式的字符串数据
- */
-instance.interceptors.request.use((config) =>{
-
+instance.interceptors.request.use(config => { // url/method/data/params
+  console.log('request interceptor onResolved()')
   // 显示请求进度
   NProgress.start()
 
+  // 1). 将post/put请求的data对象数据转换为urlencode格式的字符串数据
   const {data} = config
-  // 当传入的数据为对象时，将其转换为urlencode格式
-  if (data instanceof Object) {
+  if (data instanceof Object) { // 只要data是对象就转换
     config.data = qs.stringify(data)
   }
 
-// 验证token值：若有token值，则保存到请求头中
-  // 取得token值
+  // 5). 如果有token , 添加到请求头中: Authorization
   const token = store.getState().user.token
-  // 保存token
   if (token) {
-    // 保存到请求头中
-    config.headers.Authorization = 'atguigu_' + token
-    // config.headers['Authorization'] = 'atguigu_' + token
+    // config当前请求的配置
+    config.headers['Authorization'] = 'atguigu_' + token
   }
 
 
-
-// 必须返回config
-  return config
+  return config // 必须返回config
 })
 
 // 添加响应拦截器
 instance.interceptors.response.use(
   response => {
+    console.log('response interceptor onResolved()')
 
-    // 隐藏进度条
-  NProgress.done()
+    // 隐藏请求进度
+    NProgress.done()
 
-  const result = response.data
-  return result
+    /* 
+    2). 如果请求成功, 判断操作是否成功
+      如果成功返回返回的data数据, 外部具体请求得到需要的数据
+      如果失败返回携带msg的错误, 外部具体请求处理错误
+    */
+    const result = response.data
+    /* if (result.status===0) { // 操作成功
+      return result.data || {}  // 外部成功回调得到对象类型数据
+    } else { // 操作失败
+      return Promise.reject(result.msg || '操作失败, 未知原因')
+    } */
+
+    return result
   },
-  error =>{
-    // 显示请求进度
-  NProgress.start()
+  error => {
+    console.log('response interceptor onRejected()')
+    
+    // 隐藏请求进度
+    NProgress.done()
+    
+     /* 
+    3).统一处理请求异常, 外部调用者不用再处理请求异常
+    */
 
-// token值过期/没有token值
-    // 拿到错误信息
-  const { status, data: {msg}={} } = error.response
-  // 如果status为401, token有问题
-  if (status===401) {
-    /**
-     * 当发送多个请求时，自动跳转到登录页面，显示一个提示信息
-     */
-    if (history.location.pathname !=='/login') {
-       // 显示提示
-      message.error(msg)
-      // 删除用户信息, 自动跳转到登陆界面
-      store.dispatch(removeUserToken())
+    const { status, data: {msg}={} } = error.response
+    // 如果status为401, token有问题
+    if (status===401) {
+      // 如果当前没有有登陆界面(当前路由路径不是/login)
+      if (history.location.pathname !=='/login') {
+         // 显示提示
+        message.error(msg)
+        // 删除用户信息, 自动跳转到登陆界面
+        store.dispatch(removeUserToken())
+      }
+     
+    } else if (status===404) {
+      message.error('请求资源不存在')
+    } else {
+      message.error('请求出错: ' + error.message)
     }
-  } else if (status===404) {
-    // 请求地址错误
-    message.error('请求资源不存在')
-  } else {
-    // 统一的错误处理
-    message.error('请求出错: ' + error.message)
-  }
 
-  // 中断promise链
-  return new Promise(()=>{})
-  }
 
+   
+    // 显示请求错误的提示
+   
+    // 中断promise链, 外部不需要再处理请求出错的情况
+    return new Promise(() => {})
+  }
 )
 
+
+// 向外暴露instance
 export default instance

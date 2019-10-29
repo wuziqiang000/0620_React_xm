@@ -1,20 +1,20 @@
 /* 
 入口js
 */
-// 第三方库
 import React from 'react'
 import ReactDOM from 'react-dom'
-// 对状态进行统一管理
 import {Provider} from 'react-redux'
+import {Spin} from 'antd'
 
-
-// 自定义文件
-import App from './App'
 import store from './redux/store'
+import App from './App'
 
+import './config/i18n'
 
 ReactDOM.render((
-  <Provider store={store}>
-    <App/>
-  </Provider>
-  ),document.getElementById('root'))
+  <React.Suspense fallback={<Spin size="large" />}>
+    <Provider store={store}>
+      <App/>
+    </Provider>
+  </React.Suspense>
+), document.getElementById('root'))
