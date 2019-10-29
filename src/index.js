@@ -3,13 +3,18 @@
 */
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Provider } from 'react-redux'
+import {Provider} from 'react-redux'
+import {Spin} from 'antd'
 
-import App from './App'
 import store from './redux/store'
+import App from './App'
+
+import './config/i18n'
 
 ReactDOM.render((
-  <Provider store={store}>
-    <App/>
-  </Provider>
+  <React.Suspense fallback={<Spin size="large" />}>
+    <Provider store={store}>
+      <App/>
+    </Provider>
+  </React.Suspense>
 ), document.getElementById('root'))

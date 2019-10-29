@@ -1,54 +1,73 @@
 /* 
-操作categorys数据的action creator
+操作所有分类列表数据的action creator
 */
-
-import { 
+import {
   RECEIVE_CATEGORYS,
   ADD_CATEGORY,
   UPDATE_CATEGORY
-} from "../action-types"
+} from '../action-types'
 
 import {
-  reqCategorys, 
-  reqAddCategory, 
+  reqCategorys,
+  reqAddCategory,
   reqUpdateCategory
 } from '../../api'
 
+/* 同步action creator */
 const receiveCategorys = (categorys) => ({type: RECEIVE_CATEGORYS, data: categorys})
 const addCategory = (category) => ({type: ADD_CATEGORY, data: category})
 const updateCategory = (category) => ({type: UPDATE_CATEGORY, data: category})
 
+/* 
+获取所有分类列表的异步action creator
+*/
 export const getCategorysAsync = () => {
-  return async (dispatch, getState) => {
-    if (getState().categorys.length>0) {
-      return 
-    }
+  return async (dispatch, getState) => { // 在action creator中如何得到现有的state
+    // 如果有数据, 直接结束(不用再发请求)
+    if (getState().categorys.length>0) return
+
+    // 发异步ajax请求
     const result = await reqCategorys()
+    // 请求完成分发同步action
     if (result.status===0) {
       const categorys = result.data
       dispatch(receiveCategorys(categorys))
-    } 
-    return result.msg
+    }
+    return result.msg // 外部组件调用的promise的成功的value
+    // 此处不做请求失败的处理, 由组件做
   }
 }
 
+/* 
+添加分类的异步action creator
+*/
 export const addCategoryAsync = (categoryName) => {
   return async dispatch => {
+    // 发异步ajax请求
     const result = await reqAddCategory(categoryName)
+    // 请求完成分发同步action
     if (result.status===0) {
       const category = result.data
       dispatch(addCategory(category))
     }
+
     return result.msg
   }
 }
 
-export const updateCategoryAsync = (categoryId, categoryName) => {
+/* 
+更新分类的异步action creator
+*/
+export const updateCategoryAsync = ({categoryId, categoryName}) => {
   return async dispatch => {
-    const result = await reqUpdateCategory({ categoryId, categoryName })
+    // 发异步ajax请求
+    const result = await reqUpdateCategory({categoryId, categoryName})
+    // 请求完成分发同步action
     if (result.status===0) {
-      dispatch(updateCategory({_id: categoryId, name: categoryName}))
+      const category = {_id: categoryId, name: categoryName}
+      dispatch(updateCategory(category))
     }
+
     return result.msg
   }
 }

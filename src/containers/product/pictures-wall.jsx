@@ -3,15 +3,15 @@ import PropTypes from 'prop-types'
 import { Upload, Icon, Modal, message } from 'antd'
 
 import { reqDeleteImg } from '../../api'
-import { IMG_BASE_URL } from '../../config'
+import { BASE_IMAGE_URL } from '../../config'
 
 function getBase64(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = error => reject(error)
+  })
 }
 
 class PicturesWall extends React.Component {
@@ -23,7 +23,14 @@ class PicturesWall extends React.Component {
   state = {
     previewVisible: false, // 是否显示大图
     previewImage: '', // 预览的大图的url
-    fileList: [], // 所有已上传文件的列表
+    fileList: [
+      {
+        uid: '-1',
+        name: 'image.png',
+        status: 'done',
+        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      }
+    ], // 所有已上传文件的列表
   }
 
   getImgs = () => {
@@ -46,8 +53,8 @@ class PicturesWall extends React.Component {
     this.setState({
       previewImage: file.url || file.preview,
       previewVisible: true,
-    });
-  };
+    })
+  }
 
   /* 
   当进行文件上传/删除时, 文件状态发生改变时调用
@@ -90,7 +97,7 @@ class PicturesWall extends React.Component {
         uid: -index,
         name: img,
         status: 'done',
-        url: IMG_BASE_URL + img,
+        url: BASE_IMAGE_URL + img,
       }))
       // 更新状态
       this.setState({
@@ -124,7 +131,7 @@ class PicturesWall extends React.Component {
           <img alt="example" style={{ width: '100%' }} src={previewImage} />
         </Modal>
       </div>
-    );
+    )
   }
 }
 

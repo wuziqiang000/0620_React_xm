@@ -2,13 +2,11 @@
 应用根组件
 */
 import React, {Component} from 'react'
-// import {Button, message} from 'antd'
 import {Router, Route, Switch, Redirect} from 'react-router-dom'
-
-import routes from './config/routes'
-import history from './history'
 import Login from "./containers/login"
-import Admin from './containers/admin'
+import Admin from "./containers/admin"
+import history from './history'
+import routes from './config/routes'
 
 export default class App extends Component {
 
@@ -20,11 +18,9 @@ export default class App extends Component {
           <Admin>
             <Switch>
               {
-                routes.map(item => (
-                  <Route {...item} key={item.path}/>
-                ))
+                routes.map(route => <Route {...route} key={route.path}/>)
               }
-              <Redirect to="/home" />
+              <Redirect to="/home"/>
             </Switch>
           </Admin>
         </Switch>

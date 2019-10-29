@@ -1,21 +1,21 @@
 /* 
-管理所有分类列表数据的reducer
+管理所有角色列表数据的reducer
 */
 
 import {
-  RECEIVE_CATEGORYS,
-  ADD_CATEGORY,
-  UPDATE_CATEGORY
+  RECEIVE_ROLES,
+  ADD_ROLE,
+  UPDATE_ROLE
 } from '../action-types'
 
-const initCategorys = []
-export default function categorys(state=initCategorys, action) {
+const initRoles = []
+export default function roles(state=initRoles, action) {
   switch (action.type) {
-    case RECEIVE_CATEGORYS:
+    case RECEIVE_ROLES:
       return action.data
-    case ADD_CATEGORY:
+    case ADD_ROLE:
       return [action.data, ...state]
-    case UPDATE_CATEGORY:
+    case UPDATE_ROLE:
       return state.map(item => {
         if (item._id===action.data._id) {
           return action.data

@@ -5,20 +5,25 @@ import React, { Component } from 'react'
 import { Form, Icon, Input, Button } from 'antd'
 import { connect } from 'react-redux'
 
-import withCheckLogin from '../with-check-login'
-import { loginAsync } from '../../redux/action-creators/user'
+import {loginAsync} from '../../redux/action-creators/user'
 import logo from '../../assets/images/logo.png'
 import './index.less'
+import WithCheckLogin from '../with-check-login'
 
 const { Item } = Form // 必须在所有import的下面
 
 
-@withCheckLogin
+// connect(
+//   state => ({hasLogin: state.user.hasLogin}),  // 用于显示的一般属性
+//   {loginAsync} // 用于更新状态的函数属性
+// )(Form.create()(WithCheckLogin(Login)))
+
 @connect(
-  state => ({}),
-  { loginAsync }
+  null,
+  {loginAsync}  // dispatch(loginAsync())
 )
-@Form.create()  // 需要安装@babel/plugin-proposal-decorators
+@Form.create()    // FormLogin = Form.create()(CheckLogin)
+@WithCheckLogin  // CheckLogin = WithCheckLogin(Login)
 class Login extends Component {
 
   handleSubmit = (event) => {
@@ -27,10 +32,36 @@ class Login extends Component {
     // 对所有表单项进行统一的表单验证
     this.props.form.validateFields((err, values) => {
       if (!err) { // 验证成功
-        console.log('发ajax请求', values)
         const {username, password} = values
-        this.props.loginAsync(username, password)
-        this.props.form.resetFields(['password'])
+        console.log('发ajax请求', {username, password})
+
+        this.props.loginAsync(username, password)  
+
+        // axios.post('/login', values)
+        // axios.post('/login', qs.stringify(values)) // username=admin&password=admin
+        // ajax.post('/login2', qs.stringify(values)) // username=admin&password=admin
+        /* ajax.post('/login', values) // username=admin&password=admin
+          .then(({user, token}) => {
+            console.log('登陆成功', user, token )
+          })
+          .catch(error => { // 就是mesage值
+            console.log(error)
+          }) */
+
+        /* ajax.post('/login', values) // username=admin&password=admin
+          .then((result) => {
+
+            const {status, data: {user, token}={}, msg, xxx='abc'} = result // 嵌套解构 变量默认值
+            console.log('xxx', xxx)
+            if (status===0) {
+              console.log('登陆成功', user, token )
+            } else {
+              console.log('登陆失败', msg)
+            }
+            
+          }) */
+
+          
       } else {
         // 什么都不用写
       }
@@ -71,6 +102,7 @@ class Login extends Component {
 
   render() {
     console.log('Login render() ', this.props.form )
+
     const { getFieldDecorator } = this.props.form;
 
 
@@ -141,8 +173,14 @@ class Login extends Component {
 
 // const WrappedLogin = Form.create()(Login)
 // export default WrappedLogin
-// export default Form.create()(Login)
+/* export default connect(
+  state => ({hasLogin: state.user.hasLogin}),  // 用于显示的一般属性
+  {loginAsync} // 用于更新状态的函数属性
+)(Form.create()(Login)) */
 export default Login
+
+
+
 /* 
 1. 高阶函数
   定义: 如果函数接收的参数是函数或者返回值是函数
@@ -172,6 +210,9 @@ Form.create()(Login), 接收一个Form组件, 返回一个新组件
   const LoginWrap = Form.create()(Login)
   // LoginWrap被注册成了路由
 */
+
+
+
 
 /* 
 1. 收集输入数据

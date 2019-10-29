@@ -1,38 +1,35 @@
 import React, { Component } from 'react'
 import {
   Card,
+  Icon,
   Form,
   Input,
   Select,
   Button,
-  Icon,
   message
 } from 'antd'
 import {connect} from 'react-redux'
 
-import LinkButton from "../../components/link-button"
+import memoryUtils from '../../utils/memory'
+import {getCategorysAsync} from '../../redux/action-creators/categorys'
+import LinkButton from '../../components/link-button'
+import {reqAddUpdateProduct} from '../../api'
 import PicturesWall from "./pictures-wall"
 import RichTextEditor from "./rich-text-editor"
-import { reqAddUpdateProduct } from '../../api'
-import {getCategorysAsync} from '../../redux/action-creators/categorys'
 
-const Item = Form.Item
-const Option = Select.Option
+const {Item} = Form
+const {Option} = Select
 
 
-/*
-商品管理的添加/修改子路由
+/* 
+Admin的商品子路由组件(商品添加/修改)
 */
 @connect(
-  (state) => ({categorys: state.categorys}),
+  state => ({categorys: state.categorys}),
   {getCategorysAsync}
 )
 @Form.create()
-class ProductAddUpdate extends Component {
-
-  state = {
-    categorys: []
-  }
+class AddUpdate extends Component {
 
   // 创建ref容器
   pwRef = React.createRef()
@@ -41,7 +38,7 @@ class ProductAddUpdate extends Component {
   /* 
   检查价格
   */
-  validatePrice = (rule, value, callback) => {
+ validatePrice = (rule, value, callback) => {
     if (value < 0) {
       callback('价格不能小于0')
     } else {
@@ -50,37 +47,36 @@ class ProductAddUpdate extends Component {
   }
 
   /* 
-  提交的响应回调
+  添加/更新商品
   */
-  handleSubmit = (event) => {
-    event.preventDefault()
+  submit = () => {
+    // 表单统一验证
     this.props.form.validateFields(async (error, values) => {
+      // 如果成功了, 提交请求
       if (!error) {
-        const {name, desc, price, categoryId} = values
-        console.log(name, desc, price, categoryId)
 
         // 得到所有上传图片文件名的数组
-        const imgs = this.pwRef.current.getImgs()
-        console.log('imgs', imgs)
+        values.imgs = this.pwRef.current.getImgs()
+        console.log('imgs', values.imgs)
 
         // 得到富文本编辑器指定的detail
-        const detail = this.editorRef.current.getDetail()
-        console.log('detail', detail)
+        values.detail = this.editorRef.current.getDetail()
+        console.log('detail', values.detail)
 
-        // 准备product
-        const product = { name, desc, price, categoryId, imgs, detail }
-        if (this.product._id) { //当前是更新
-          product._id = this.product._id
+        // 如果是更新, 需要有id数据
+        const id = memoryUtils.product._id
+        if (id) {
+          values._id = id
         }
 
-        // 发添加商品请求
-        // 发修改商品请求
-        const result = await reqAddUpdateProduct(product)
+        // 发添加/更新的请求
+        const result = await reqAddUpdateProduct(values)
         if (result.status===0) {
-          message.success('商品操作成功')
+          message.success('操作成功')
+          // 跳转到列表页面
           this.props.history.replace('/product')
         } else {
-          message.error('商品操作失败')
+          message.error(result.msg)
         }
       }
     })
@@ -90,79 +86,72 @@ class ProductAddUpdate extends Component {
     this.props.getCategorysAsync()
   }
 
-  componentWillMount () {
-    const product = this.props.location.state
-    this.product = product || {} // 如果是添加保存的是{}
-    this.isUpdate = !!this.product._id
-  }
-
   render() {
-    const { product, isUpdate } = this
-    const { categorys } = this.props
-    const { getFieldDecorator } = this.props.form
+    const product = memoryUtils.product
 
     const title = (
       <span>
         <LinkButton onClick={() => this.props.history.goBack()}>
           <Icon type="arrow-left"></Icon>
         </LinkButton>
-        <span>{isUpdate ? '更新' : '添加'}商品</span>
+        <span>商品{product._id ? '修改' : '添加'}</span>
       </span>
     )
-
-    // 所有表单项的布局
-    const formItemLayout = {
+    const formLayout = {
       labelCol: { span: 2 },
       wrapperCol: { span: 8 },
-    };
+    }
 
+    const {categorys, form: {getFieldDecorator}} = this.props
 
     return (
       <Card title={title}>
-        <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-          <Item label="商品名称" >
+        <Form {...formLayout}>
+          <Item label="商品名称">
             {
               getFieldDecorator('name', {
-                initialValue: product.name,
+                initialValue: product.name || '',
                 rules: [
                   {required: true, message: '商品名称必须输入'}
                 ]
               })(
-                <Input type="text" placeholder="商品名称"></Input>
+                <Input placeholder="商品名称"></Input>
               )
             }
+            
           </Item>
           <Item label="商品描述">
             {
               getFieldDecorator('desc', {
-                initialValue: product.desc,
+                initialValue: product.desc || '',
                 rules: [
-                  { required: true, message: '商品描述必须输入'}
+                  {required: true, message: '商品描述必须输入'}
                 ]
               })(
-                <Input type="text" placeholder="商品描述"></Input>
+                <Input placeholder="商品描述"></Input>
               )
             }
+            
           </Item>
           <Item label="商品价格">
             {
               getFieldDecorator('price', {
-                initialValue: product.price,
+                initialValue: product.price || '',
                 rules: [
-                  { required: true, message: '商品价格必须输入'},
-                  {validator: this.validatePrice}
+                  {required: true, message: '商品价格必须输入'}
                 ]
               })(
-                <Input type="number" placeholder="商品价格" addonAfter="元"></Input>
+                <Input type="number" addonAfter="元" placeholder="商品价格"></Input>
               )
             }
+            
           </Item>
           <Item label="商品分类">
             {
               getFieldDecorator('categoryId', {
-                initialValue: product.categoryId,
+                initialValue: product.categoryId || '',
                 rules: [
-                  { required: true, message: '商品分类必须指定'}
+                  {required: true, message: '商品分类必须输入'}
                 ]
               })(
                 <Select>
@@ -173,6 +162,7 @@ class ProductAddUpdate extends Component {
                 </Select>
               )
             }
+            
           </Item>
           <Item label="商品图片" wrapperCol={{ span: 15}}>
             {/* 内部会将组件对象保存到ref容器对象: current: 组件对象 */}
@@ -182,9 +172,9 @@ class ProductAddUpdate extends Component {
           <Item label="商品详情" wrapperCol={{ span: 20 }}>
             <RichTextEditor ref={this.editorRef} detail={product.detail} />
           </Item>
-
+          
           <Item>
-            <Button type="primary" htmlType="submit">提交</Button>
+            <Button type="primary" onClick={this.submit}>提交</Button>
           </Item>
         </Form>
       </Card>
@@ -192,4 +182,4 @@ class ProductAddUpdate extends Component {
   }
 }
 
-export default ProductAddUpdate
+export default AddUpdate

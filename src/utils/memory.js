@@ -1,6 +1,6 @@
 /* 
-用于内存存储的容器
+在内存保存一些数据的工具模块
 */
 export default {
-  product: {}, // 要显示的商品
+  product: {}
 }

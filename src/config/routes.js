@@ -13,12 +13,10 @@ import Pie from '../components/charts/pie'
 const routes = [
   {
     path: '/home', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: Home // 组件
   },
   {
     path: '/category', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: Category // 组件
   },
   {
@@ -28,37 +26,30 @@ const routes = [
   },
   {
     path: '/product/addupdate', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: ProductAddUpdate // 组件
   },
   {
     path: '/product/detail/:id', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: ProductDetail // 组件
   },
   {
     path: '/user', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: User // 组件
   },
   {
     path: '/role', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: Role // 组件
   },
   {
     path: '/charts/line', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: Line // 组件
   },
   {
     path: '/charts/bar', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: Bar // 组件
   },
   {
     path: '/charts/pie', // 路由路径
-    exact: true, // 是否严格匹配路由路径
     component: Pie // 组件
   },
 ]

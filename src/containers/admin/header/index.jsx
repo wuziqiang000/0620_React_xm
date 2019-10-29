@@ -1,141 +1,125 @@
-import React, {Component} from 'react'
-import {Modal, Button, Icon} from 'antd'
-import {withRouter} from 'react-router-dom'
-import dayjs from 'dayjs'
+import React, { Component } from 'react'
 import {connect} from 'react-redux'
+import {withRouter} from 'react-router-dom'  // 高阶组件, 用来包装非路由组件
+import { Modal, Button, Icon } from 'antd';
+import dayjs from 'dayjs'
+import format from 'date-fns/format'
 import screenfull from 'screenfull'
+import { withTranslation } from 'react-i18next'
 
 import {removeUserToken} from '../../../redux/action-creators/user'
 import LinkButton from '../../../components/link-button'
-import menuList from '../../../config/menu-config'
 import {reqWeather} from '../../../api'
 
 import './index.less'
 
-
-/*
-头部组件
+/* 
+管理界面的头部组件
 */
 @connect(
-  state => ({username: state.user.user.username, headerTitle: state.headerTitle}),
+  state => ({
+    username: state.user.user.username, 
+    headerTitle: state.headerTitle
+  }),
   {removeUserToken}
 )
-@withRouter
+@withRouter  // 向组件内部传入3个属性: history/location/match
+@withTranslation()
 class Header extends Component {
 
   state = {
-    sysTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    dayPictureUrl: '', // 天气图片的url
-    weather: '',
-    isScreenFull: false
+    // currentTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+    currentTime: format(Date.now(), 'yyyy-MM-dd HH:mm:ss'),
+    dayPictureUrl: '',  // 天气图片的url
+    weather: '', // 天气文本
+    isFullScreen: false, // 当前是否全屏显示
+    language: this.props.i18n.language
   }
 
-  /*
-  发异步ajax获取天气数据并更新状态
-   */
-  getWeather = async () => {
+  logout = () => {
+    // 显示确认框
+    Modal.confirm({
+      title: '确认退出吗?',
+      onOk: () => {
+        this.props.removeUserToken()
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    })
+  }
+
+  showWeather = async () => {
+    // 请求获取数据
     const {dayPictureUrl, weather} = await reqWeather('北京')
+    // 更新状态
     this.setState({
-      dayPictureUrl,
+      dayPictureUrl, 
       weather
     })
   }
 
-  /*
-  启动循环定时器, 每隔1s更新一次sysTime
-   */
-  getSysTime = () => {
-    this.intervalId = setInterval(() => {
-      this.setState({
-        sysTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
-      })
-    }, 1000)
-  }
-
-  /*
-  退出登陆
-   */
-  logout = () => {
-    Modal.confirm({
-      content: '确定退出吗?',
-      onOk: () => {
-        console.log('OK')
-        this.props.removeUserToken()
-      },
-      onCancel() {
-        console.log('Cancel')
-      },
-    })
-  }
-
-  /*
-  根据请求的path得到对应的标题
-   */
-  getTitle = (path) => {
-    let title
-    menuList.forEach(menu => {
-      if(menu.key===path) {
-        title = menu.title
-      } else if (menu.children) {
-        menu.children.forEach(item => {
-          if(path.indexOf(item.key)===0) {
-            title = item.title
-          }
-        })
-      }
-    })
-
-    return title
-  }
-
-  toggleScreen = () => {
+  handleFullScreen = () => {
     if (screenfull.isEnabled) {
-      // 切换全屏
-      screenfull.toggle();
+      screenfull.toggle()
     }
   }
 
-  onChange = () => {
+  changeLanguage = () => {
+    const language = this.state.language==='en' ? 'zh-CN' : 'en'
+    this.props.i18n.changeLanguage(language)
     this.setState({
-      isScreenFull: !this.state.isScreenFull
+      language
     })
+    
   }
 
-  componentDidMount () {
-    this.getSysTime()
-    this.getWeather()
 
-    // 绑定事件
-    screenfull.on('change', this.onChange)
+  componentDidMount () {
+    // 启动循环定时器, 每隔1s, 更新显示当前时间
+    this.intervalId = setInterval(() => {
+      this.setState({
+        currentTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+      })
+    }, 1000);
+    // 请求获取天气信息显示
+    this.showWeather()
+
+    // 给screenfull绑定change
+    screenfull.onchange(() => {
+      // 切换状态数据
+      this.setState({
+        isFullScreen: !this.state.isFullScreen
+      })
+    })
   }
 
   componentWillUnmount () {
     // 清除定时器
     clearInterval(this.intervalId)
-    // 解绑事件
-    screenfull.off('change', this.onChange)
   }
 
-  render() {
-    const {sysTime, dayPictureUrl, weather, isScreenFull} = this.state
 
-    // 得到对应的标题
-    // const headerTitle = this.getTitle(path)
-    const headerTitle = this.props.headerTitle
+  render() {
+    const {currentTime, dayPictureUrl, weather, isFullScreen, language} = this.state
+    const {username, headerTitle} = this.props
 
     return (
       <div className="header">
         <div className="header-top">
-        <Button size="small" onClick={this.toggleScreen}>
-          <Icon type={isScreenFull ? 'fullscreen-exit' : 'fullscreen'} />
-        </Button> &nbsp;
-          <span>欢迎, {this.props.username}</span>
+          <Button size="small" onClick={this.changeLanguage}>
+            {language==='en' ? '中文' : 'English'}
+          </Button> &nbsp;
+          <Button size="small" onClick={this.handleFullScreen}>
+            <Icon type={isFullScreen ? 'fullscreen-exit' : 'fullscreen'} />
+          </Button> &nbsp;
+          <span>欢迎, {username}</span>
           <LinkButton onClick={this.logout}>退出</LinkButton>
         </div>
         <div className="header-bottom">
           <div className="header-bottom-left">{headerTitle}</div>
           <div className="header-bottom-right">
-            <span>{sysTime}</span>
+            <span>{currentTime}</span>
             <img src={dayPictureUrl} alt="weather"/>
             <span>{weather}</span>
           </div>
